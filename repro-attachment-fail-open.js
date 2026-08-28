@@ -236,6 +236,11 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Failed to set internet header.', error);
   }
 
+
+  console.log(`[repro] Everything done. Now let's wait 5seconds maybe it will help`);
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  console.log(`[repro] Done waiting`);
+
   console.log('[repro] Completing event, allowEvent=true.');
   event.completed({ allowEvent: true });
 }

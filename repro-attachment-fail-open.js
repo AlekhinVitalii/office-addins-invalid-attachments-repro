@@ -237,8 +237,8 @@ async function onMessageSendHandler(event) {
   }
 
 
-  console.log(`[repro] Everything done. Now let's wait 35 seconds maybe it will help`);
-  await new Promise(resolve => setTimeout(resolve, 35000));
+  console.log(`[repro] Everything done. Now let's wait 60 seconds maybe it will help`);
+  await new Promise(resolve => setTimeout(resolve, 60000));
   console.log(`[repro] Done waiting`);
 
   console.log('[repro] Completing event, allowEvent=true.');

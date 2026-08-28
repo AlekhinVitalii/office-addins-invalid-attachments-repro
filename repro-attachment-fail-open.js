@@ -9,13 +9,16 @@
  *
  * The body is modified the same way office-classifier does it (see
  * OutlookDocument.setHtml): read the current HTML via body.getAsync(), then
- * replace the whole body in one body.setAsync() call.
+ * replace the whole body in one body.setAsync() call. A custom internet
+ * header (X-GV-Repro) is also set via internetHeaders.setAsync(), the same
+ * way OutlookDocument.setHeaders() does it.
  *
  * To use: attach one or more files to a message, point a manifest's
  * OnMessageSend LaunchEvent at this file (as the runtime script), and send.
  * Watch the console for the [repro] lines, and open the sent message — the
  * "Header added and time when it was added" banner at the top of the body
- * confirms the send completed.
+ * (and the X-GV-Repro header, visible via the message source / EML) confirms
+ * the send completed.
  */
 
 Office.onReady(() => {
@@ -158,8 +161,8 @@ function getBodyHtml(item) {
 
 // Visible proof-of-life, written the same way office-classifier writes the
 // body: read the current HTML, then replace the whole body in one
-// mailboxBody.setAsync() call (see OutlookDocument.setHtml), rather than an
-// invisible internet header or body.prependAsync().
+// mailboxBody.setAsync() call (see OutlookDocument.setHtml), rather than
+// body.prependAsync().
 function setReproBanner(item) {
   return new Promise((resolve, reject) => {
     getBodyHtml(item)
@@ -186,6 +189,27 @@ function setReproBanner(item) {
   });
 }
 
+// Mirrors OutlookDocument.setHeaders() — internetHeaders.setAsync() with a
+// plain header-name -> value map.
+function setReproHeader(item) {
+  return new Promise((resolve, reject) => {
+    const addedAt = new Date().toISOString();
+    const headers = { 'X-GV-Repro': addedAt };
+
+    console.log(`[repro] Calling internetHeaders.setAsync(X-GV-Repro=${addedAt})...`);
+
+    item.internetHeaders.setAsync(headers, (res) => {
+      console.log('[repro] internetHeaders.setAsync returned.', { status: res.status, error: res.error });
+
+      if (res.status === Office.AsyncResultStatus.Failed) {
+        reject(res.error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 async function onMessageSendHandler(event) {
   console.log(`[repro] onMessageSendHandler started at ${new Date().toISOString()}`);
 
@@ -203,6 +227,13 @@ async function onMessageSendHandler(event) {
     console.log('[repro] Set banner into body.');
   } catch (error) {
     console.error('[repro] Failed to set banner.', error);
+  }
+
+  try {
+    await setReproHeader(item);
+    console.log('[repro] Set X-GV-Repro internet header.');
+  } catch (error) {
+    console.error('[repro] Failed to set internet header.', error);
   }
 
   console.log('[repro] Completing event, allowEvent=true.');

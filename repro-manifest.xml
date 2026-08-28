@@ -9,12 +9,12 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Attachment fail-open repro"/>
   <Description DefaultValue="Throwaway add-in to reproduce the failed-attachment-download fail-open path on OnMessageSend."/>
-  <IconUrl DefaultValue="https://__PAGES_DOMAIN__/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://__PAGES_DOMAIN__/icon-64.png"/>
-  <SupportUrl DefaultValue="https://__PAGES_DOMAIN__"/>
+  <IconUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/icon-64.png"/>
+  <SupportUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev"/>
   <AppDomains>
-    <AppDomain>__PAGES_DOMAIN__</AppDomain>
-    <AppDomain>https://__PAGES_DOMAIN__</AppDomain>
+    <AppDomain>office-addins-invalid-attachments-repro.pages.dev</AppDomain>
+    <AppDomain>https://office-addins-invalid-attachments-repro.pages.dev</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Mailbox" />
@@ -27,7 +27,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://__PAGES_DOMAIN__/repro-attachment-fail-open.html"/>
+        <SourceLocation DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/repro-attachment-fail-open"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -62,7 +62,7 @@
       </Hosts>
       <Resources>
         <bt:Urls>
-          <bt:Url id="Functions.Url" DefaultValue="https://__PAGES_DOMAIN__/repro-attachment-fail-open.html"/>
+          <bt:Url id="Functions.Url" DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/repro-attachment-fail-open"/>
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="GetStarted.Title" DefaultValue="Attachment fail-open repro"/>

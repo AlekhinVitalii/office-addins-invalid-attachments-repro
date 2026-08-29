@@ -231,12 +231,12 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Failed to set banner.', error);
   }
 
-  try {
-    await setReproHeader(item);
-    console.log('[repro] Set X-GV-Repro internet header.');
-  } catch (error) {
-    console.error('[repro] Failed to set internet header.', error);
-  }
+  // try {
+  //   await setReproHeader(item);
+  //   console.log('[repro] Set X-GV-Repro internet header.');
+  // } catch (error) {
+  //   console.error('[repro] Failed to set internet header.', error);
+  // }
 
     // try {
     //     const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);

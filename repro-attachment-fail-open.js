@@ -217,12 +217,12 @@ async function onMessageSendHandler(event) {
 
   const item = Office.context.mailbox.item;
 
-  try {
-    const attachments = await withTimeout('Collecting attachments', getAttachments(item), 15000);
-    console.log('[repro] Collected attachments:', attachments);
-  } catch (error) {
-    console.error('[repro] Attachment collection failed/timed out — failing open.', error);
-  }
+  // try {
+  //   const attachments = await withTimeout('Collecting attachments', getAttachments(item), 15000);
+  //   console.log('[repro] Collected attachments:', attachments);
+  // } catch (error) {
+  //   console.error('[repro] Attachment collection failed/timed out — failing open.', error);
+  // }
 
   try {
     await setReproBanner(item);

@@ -1,5 +1,5 @@
 /**
- * Minimal repro for OnMessageSend attachment handling.
+ * Minimal repro for ItemSend attachment handling.
  *
  * getAttachments() below is a verbatim port of OutlookDocument.getAttachments()
  * as it currently stands in office-classifier — real getAttachmentsAsync /
@@ -14,7 +14,9 @@
  * way OutlookDocument.setHeaders() does it.
  *
  * To use: attach one or more files to a message, point a manifest's
- * OnMessageSend LaunchEvent at this file (as the runtime script), and send.
+ * ItemSend Events extension point (FunctionExecution="synchronous", matching
+ * the real production manifest.outlook.xml — not the LaunchEvent/OnMessageSend
+ * mechanism used by the block/soft-block variants) at this file, and send.
  * Watch the console for the [repro] lines, and open the sent message — the
  * "Header added and time when it was added" banner at the top of the body
  * (and the X-GV-Repro header, visible via the message source / EML) confirms
@@ -235,6 +237,13 @@ async function onMessageSendHandler(event) {
   } catch (error) {
     console.error('[repro] Failed to set internet header.', error);
   }
+
+    try {
+        const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);
+        console.log('[repro] Check attachments 2nd time Collected attachments:', attachments);
+    } catch (error) {
+        console.error('[repro] Check attachments 2nd time Attachment collection failed/timed out — failing open.', error);
+    }
 
   console.log('[repro] Completing event, allowEvent=true.');
   event.completed({ allowEvent: true });

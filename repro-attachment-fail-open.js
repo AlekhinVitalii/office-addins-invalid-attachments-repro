@@ -217,26 +217,26 @@ async function onMessageSendHandler(event) {
 
   const item = Office.context.mailbox.item;
 
-  // try {
-  //   const attachments = await withTimeout('Collecting attachments', getAttachments(item), 15000);
-  //   console.log('[repro] Collected attachments:', attachments);
-  // } catch (error) {
-  //   console.error('[repro] Attachment collection failed/timed out — failing open.', error);
-  // }
-
   try {
-    await setReproBanner(item);
-    console.log('[repro] Set banner into body.');
+    const attachments = await withTimeout('Collecting attachments', getAttachments(item), 15000);
+    console.log('[repro] Collected attachments:', attachments);
   } catch (error) {
-    console.error('[repro] Failed to set banner.', error);
+    console.error('[repro] Attachment collection failed/timed out — failing open.', error);
   }
 
   // try {
-  //   await setReproHeader(item);
-  //   console.log('[repro] Set X-GV-Repro internet header.');
+  //   await setReproBanner(item);
+  //   console.log('[repro] Set banner into body.');
   // } catch (error) {
-  //   console.error('[repro] Failed to set internet header.', error);
+  //   console.error('[repro] Failed to set banner.', error);
   // }
+
+  try {
+    await setReproHeader(item);
+    console.log('[repro] Set X-GV-Repro internet header.');
+  } catch (error) {
+    console.error('[repro] Failed to set internet header.', error);
+  }
 
     // try {
     //     const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);

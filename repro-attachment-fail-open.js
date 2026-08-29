@@ -27,30 +27,6 @@ Office.onReady(() => {
   console.log('[repro] Office.js ready.');
 });
 
-function withTimeout(operation, promise, timeoutMs = 15000) {
-  console.log(`[repro][withTimeout] ${operation} started`);
-
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      console.error(`[repro][withTimeout] ${operation} timed out after ${timeoutMs}ms`);
-      reject(new Error(`Timed out after ${timeoutMs}ms: ${operation}`));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        console.log(`[repro][withTimeout] ${operation} succeeded`);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        console.error(`[repro][withTimeout] ${operation} failed`, error);
-        reject(error);
-      }
-    );
-  });
-}
-
 // Verbatim port of OutlookDocument.getAttachments() (office-classifier) —
 // real Office.js calls, no forced failures — with logging added at every step.
 function getAttachments(item) {
@@ -218,18 +194,18 @@ async function onMessageSendHandler(event) {
   const item = Office.context.mailbox.item;
 
   try {
-    const attachments = await withTimeout('Collecting attachments', getAttachments(item), 15000);
+    const attachments = await getAttachments(item);
     console.log('[repro] Collected attachments:', attachments);
   } catch (error) {
     console.error('[repro] Attachment collection failed/timed out — failing open.', error);
   }
 
-  // try {
-  //   await setReproBanner(item);
-  //   console.log('[repro] Set banner into body.');
-  // } catch (error) {
-  //   console.error('[repro] Failed to set banner.', error);
-  // }
+  try {
+    await setReproBanner(item);
+    console.log('[repro] Set banner into body.');
+  } catch (error) {
+    console.error('[repro] Failed to set banner.', error);
+  }
 
   try {
     await setReproHeader(item);
@@ -238,12 +214,12 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Failed to set internet header.', error);
   }
 
-    // try {
-    //     const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);
-    //     console.log('[repro] Check attachments 2nd time Collected attachments:', attachments);
-    // } catch (error) {
-    //     console.error('[repro] Check attachments 2nd time Attachment collection failed/timed out — failing open.', error);
-    // }
+    try {
+        const attachments = await getAttachments(item);
+        console.log('[repro] Check attachments 2nd time Collected attachments:', attachments);
+    } catch (error) {
+        console.error('[repro] Check attachments 2nd time Attachment collection failed/timed out — failing open.', error);
+    }
 
   console.log('[repro] Completing event, allowEvent=true.');
   event.completed({ allowEvent: true });

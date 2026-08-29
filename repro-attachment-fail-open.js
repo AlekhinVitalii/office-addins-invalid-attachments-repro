@@ -238,12 +238,12 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Failed to set internet header.', error);
   }
 
-    try {
-        const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);
-        console.log('[repro] Check attachments 2nd time Collected attachments:', attachments);
-    } catch (error) {
-        console.error('[repro] Check attachments 2nd time Attachment collection failed/timed out — failing open.', error);
-    }
+    // try {
+    //     const attachments = await withTimeout('Check attachments 2nd time Collecting attachments', getAttachments(item), 15000);
+    //     console.log('[repro] Check attachments 2nd time Collected attachments:', attachments);
+    // } catch (error) {
+    //     console.error('[repro] Check attachments 2nd time Attachment collection failed/timed out — failing open.', error);
+    // }
 
   console.log('[repro] Completing event, allowEvent=true.');
   event.completed({ allowEvent: true });

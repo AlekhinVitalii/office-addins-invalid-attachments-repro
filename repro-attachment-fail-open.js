@@ -148,7 +148,7 @@ function getInlineAttachments(item) {
 // under this floor is treated as broken too. Arbitrary threshold picked well
 // above the observed placeholder sizes and well below a real image; revisit
 // if it misclassifies a legitimately tiny inline image (e.g. a 1x1 spacer).
-const MIN_INLINE_ATTACHMENT_CONTENT_LENGTH = 1024;
+const MIN_INLINE_ATTACHMENT_CONTENT_LENGTH = 512;
 
 // Checks each inline attachment's content via getAttachmentContentAsync,
 // stopping as soon as one comes back broken (failed status, no value, or

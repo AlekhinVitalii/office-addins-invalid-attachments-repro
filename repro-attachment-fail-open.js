@@ -287,29 +287,29 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Attachment collection failed/timed out — failing open.', error);
   }
 
-  // let brokenInlineAttachment = null;
-  // try {
-  //   brokenInlineAttachment = await findBrokenInlineAttachment(item);
-  // } catch (error) {
-  //   console.error('[repro] Inline attachment check failed — defaulting to setBody.', error);
-  // }
+  let brokenInlineAttachment = null;
+  try {
+    brokenInlineAttachment = await findBrokenInlineAttachment(item);
+  } catch (error) {
+    console.error('[repro] Inline attachment check failed — defaulting to setBody.', error);
+  }
 
-  // if (brokenInlineAttachment) {
-  //   console.log(`[repro] Broken inline attachment detected: "${brokenInlineAttachment.name}" — using prependAsync instead of setBody.`);
+  if (brokenInlineAttachment) {
+    console.log(`[repro] Broken inline attachment detected: "${brokenInlineAttachment.name}" — using prependAsync instead of setBody.`);
     try {
       await setReproBannerPrepend(item);
       console.log('[repro] Prepended banner into body.');
     } catch (error) {
       console.error('[repro] Failed to prepend banner.', error);
     }
-  // } else {
-  //   try {
-  //     await setReproBanner(item);
-  //     console.log('[repro] Set banner into body.');
-  //   } catch (error) {
-  //     console.error('[repro] Failed to set banner.', error);
-  //   }
-  // }
+  } else {
+    try {
+      await setReproBanner(item);
+      console.log('[repro] Set banner into body.');
+    } catch (error) {
+      console.error('[repro] Failed to set banner.', error);
+    }
+  }
 
   try {
     await setReproHeader(item);

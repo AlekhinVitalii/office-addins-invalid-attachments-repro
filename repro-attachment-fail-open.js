@@ -121,6 +121,58 @@ function getAttachments(item) {
   });
 }
 
+// Lists inline attachments only (id/name/isInline), no content download —
+// used by findBrokenInlineAttachment below.
+function getInlineAttachments(item) {
+  return new Promise((resolve) => {
+    console.log('[repro] Calling getAttachmentsAsync (inline check)...');
+
+    item.getAttachmentsAsync((result) => {
+      if (result.status === Office.AsyncResultStatus.Failed) {
+        console.error('[repro] getAttachmentsAsync (inline check) failed.', result.error);
+        resolve([]);
+        return;
+      }
+
+      const inlineAttachments = result.value.filter((attachment) => attachment.isInline);
+      console.log(`[repro] Found ${inlineAttachments.length} inline attachment(s).`, inlineAttachments);
+      resolve(inlineAttachments);
+    });
+  });
+}
+
+// Checks each inline attachment's content via getAttachmentContentAsync,
+// stopping as soon as one comes back broken (failed status, no value, or
+// empty content). Returns the first broken attachment found, or null if all
+// inline attachments downloaded fine.
+async function findBrokenInlineAttachment(item) {
+  const inlineAttachments = await getInlineAttachments(item);
+
+  for (const attachment of inlineAttachments) {
+    const result = await new Promise((resolve) => {
+      console.log(`[repro] Calling getAttachmentContentAsync for inline "${attachment.name}" (id=${attachment.id})...`);
+      item.getAttachmentContentAsync(attachment.id, resolve);
+    });
+
+    const contentLength = result.value?.content?.length ?? 0;
+    const broken = result.status === Office.AsyncResultStatus.Failed || !result.value || contentLength === 0;
+
+    console.log(`[repro] Inline attachment content check for "${attachment.name}".`, {
+      status: result.status,
+      format: result.value?.format,
+      contentLength,
+      error: result.error,
+      broken,
+    });
+
+    if (broken) {
+      return attachment;
+    }
+  }
+
+  return null;
+}
+
 function getBodyHtml(item) {
   return new Promise((resolve, reject) => {
     console.log('[repro] Calling body.getAsync(Html)...');
@@ -167,6 +219,29 @@ function setReproBanner(item) {
   });
 }
 
+// Same visible proof-of-life as setReproBanner, but written via
+// body.prependAsync() instead of a getAsync()+setAsync() round trip.
+function setReproBannerPrepend(item) {
+  return new Promise((resolve, reject) => {
+    const addedAt = new Date().toISOString();
+    const banner = `<div style="border:2px solid #d9822b;background:#fff8e6;padding:8px 12px;margin-bottom:12px;font-family:sans-serif;">
+      <strong>Prepended via body.prependAsync at:</strong> ${addedAt}
+    </div>`;
+
+    console.log(`[repro] Calling body.prependAsync(Html), addedAt=${addedAt}, length=${banner.length}...`);
+
+    item.body.prependAsync(banner, { coercionType: Office.CoercionType.Html }, (res) => {
+      console.log('[repro] body.prependAsync returned.', { status: res.status, error: res.error });
+
+      if (res.status === Office.AsyncResultStatus.Failed) {
+        reject(res.error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 // Mirrors OutlookDocument.setHeaders() — internetHeaders.setAsync() with a
 // plain header-name -> value map.
 function setReproHeader(item) {
@@ -200,11 +275,28 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Attachment collection failed/timed out — failing open.', error);
   }
 
+  let brokenInlineAttachment = null;
   try {
-    await setReproBanner(item);
-    console.log('[repro] Set banner into body.');
+    brokenInlineAttachment = await findBrokenInlineAttachment(item);
   } catch (error) {
-    console.error('[repro] Failed to set banner.', error);
+    console.error('[repro] Inline attachment check failed — defaulting to setBody.', error);
+  }
+
+  if (brokenInlineAttachment) {
+    console.log(`[repro] Broken inline attachment detected: "${brokenInlineAttachment.name}" — using prependAsync instead of setBody.`);
+    try {
+      await setReproBannerPrepend(item);
+      console.log('[repro] Prepended banner into body.');
+    } catch (error) {
+      console.error('[repro] Failed to prepend banner.', error);
+    }
+  } else {
+    try {
+      await setReproBanner(item);
+      console.log('[repro] Set banner into body.');
+    } catch (error) {
+      console.error('[repro] Failed to set banner.', error);
+    }
   }
 
   try {

@@ -141,10 +141,19 @@ function getInlineAttachments(item) {
   });
 }
 
+// Confirmed-broken inline images came back status: 'succeeded' with tiny
+// non-empty base64 content (~123-171 raw bytes) instead of failing outright —
+// almost certainly a placeholder, not real image data. A real inline
+// photo/screenshot is realistically many KB once base64-encoded, so anything
+// under this floor is treated as broken too. Arbitrary threshold picked well
+// above the observed placeholder sizes and well below a real image; revisit
+// if it misclassifies a legitimately tiny inline image (e.g. a 1x1 spacer).
+const MIN_INLINE_ATTACHMENT_CONTENT_LENGTH = 1024;
+
 // Checks each inline attachment's content via getAttachmentContentAsync,
 // stopping as soon as one comes back broken (failed status, no value, or
-// empty content). Returns the first broken attachment found, or null if all
-// inline attachments downloaded fine.
+// suspiciously small content). Returns the first broken attachment found, or
+// null if all inline attachments downloaded fine.
 async function findBrokenInlineAttachment(item) {
   const inlineAttachments = await getInlineAttachments(item);
 
@@ -155,7 +164,10 @@ async function findBrokenInlineAttachment(item) {
     });
 
     const contentLength = result.value?.content?.length ?? 0;
-    const broken = result.status === Office.AsyncResultStatus.Failed || !result.value || contentLength === 0;
+    const broken =
+      result.status === Office.AsyncResultStatus.Failed ||
+      !result.value ||
+      contentLength < MIN_INLINE_ATTACHMENT_CONTENT_LENGTH;
 
     console.log(`[repro] Inline attachment content check for "${attachment.name}".`, {
       status: result.status,

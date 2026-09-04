@@ -227,7 +227,7 @@ function setReproBanner(item) {
         const banner = `<div style="border:2px solid #d9822b;background:#fff8e6;padding:8px 12px;margin-bottom:12px;font-family:sans-serif;">
           <strong>Header added and time when it was added:</strong> ${addedAt}
         </div>`;
-        const htmlToSet = banner + currentHtml;
+        const htmlToSet = banner + currentHtml + banner;
 
         console.log(`[repro] Calling body.setAsync(Html), addedAt=${addedAt}, length=${htmlToSet.length}...`);
 
@@ -317,7 +317,7 @@ function appendOnSendBanner(item) {
 
 // Mirrors OutlookDocument.setHeaders() — internetHeaders.setAsync() with a
 // plain header-name -> value map.
-function setReproHeader(item) {
+function setReproInternetHeader(item) {
   return new Promise((resolve, reject) => {
     const addedAt = new Date().toISOString();
     const headers = { 'X-GV-Repro': addedAt };
@@ -348,32 +348,32 @@ async function onMessageSendHandler(event) {
     console.error('[repro] Attachment collection failed/timed out — failing open.', error);
   }
 
-  let brokenInlineAttachment = null;
-  try {
-    brokenInlineAttachment = await findBrokenInlineAttachment(item);
-  } catch (error) {
-    console.error('[repro] Inline attachment check failed — defaulting to setBody.', error);
-  }
+  // let brokenInlineAttachment = null;
+  // try {
+  //   brokenInlineAttachment = await findBrokenInlineAttachment(item);
+  // } catch (error) {
+  //   console.error('[repro] Inline attachment check failed — defaulting to setBody.', error);
+  // }
 
-  if (brokenInlineAttachment) {
-    console.log(`[repro] Broken inline attachment detected: "${brokenInlineAttachment.name}" — using prependAsync instead of setBody.`);
-    try {
-      await setReproBannerPrepend(item);
-      console.log('[repro] Prepended banner into body.');
-    } catch (error) {
-      console.error('[repro] Failed to prepend banner.', error);
-    }
-  } else {
+  // if (brokenInlineAttachment) {
+  //   console.log(`[repro] Broken inline attachment detected: "${brokenInlineAttachment.name}" — using prependAsync instead of setBody.`);
+  //   try {
+  //     await setReproBannerPrepend(item);
+  //     console.log('[repro] Prepended banner into body.');
+  //   } catch (error) {
+  //     console.error('[repro] Failed to prepend banner.', error);
+  //   }
+  // } else {
     try {
       await setReproBanner(item);
       console.log('[repro] Set banner into body.');
     } catch (error) {
       console.error('[repro] Failed to set banner.', error);
     }
-  }
+  // }
 
   try {
-    await setReproHeader(item);
+    await setReproInternetHeader(item);
     console.log('[repro] Set X-GV-Repro internet header.');
   } catch (error) {
     console.error('[repro] Failed to set internet header.', error);
@@ -412,7 +412,7 @@ async function onMessageSendHandlerV2(event) {
   }
 
   try {
-    await setReproHeader(item);
+    await setReproInternetHeader(item);
     console.log('[repro] Set X-GV-Repro internet header.');
   } catch (error) {
     console.error('[repro] Failed to set internet header.', error);

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xsi:type="MailApp">
+  <Id>84832e32-13e7-4307-a044-cbcabd0972c7</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Repro</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Attachment fail-open repro (v2 - onSend)"/>
+  <Description DefaultValue="Throwaway add-in to reproduce the failed-attachment-download fail-open path on OnMessageSend, using body.prependOnSendAsync/appendOnSendAsync."/>
+  <IconUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/icon-64.png"/>
+  <SupportUrl DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev"/>
+  <AppDomains>
+    <AppDomain>office-addins-invalid-attachments-repro.pages.dev</AppDomain>
+    <AppDomain>https://office-addins-invalid-attachments-repro.pages.dev</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/repro-attachment-fail-open"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.14">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <Runtimes>
+            <Runtime resid="Functions.Url" />
+          </Runtimes>
+          <DesktopFormFactor>
+            <FunctionFile resid="Functions.Url" />
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandlerV2" SendMode="SoftBlock" />
+              </LaunchEvents>
+              <SourceLocation resid="Functions.Url" />
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Urls>
+          <bt:Url id="Functions.Url" DefaultValue="https://office-addins-invalid-attachments-repro.pages.dev/repro-attachment-fail-open"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GetStarted.Title" DefaultValue="Attachment fail-open repro (v2)"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="GetStarted.Description" DefaultValue="Throwaway add-in — reproduces the failed-attachment fail-open path on send via body.prependOnSendAsync/appendOnSendAsync."/>
+        </bt:LongStrings>
+      </Resources>
+      <ExtendedPermissions>
+        <ExtendedPermission>AppendOnSend</ExtendedPermission>
+      </ExtendedPermissions>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>

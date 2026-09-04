@@ -21,6 +21,20 @@
  * "Header added and time when it was added" banner at the top of the body
  * (and the X-GV-Repro header, visible via the message source / EML) confirms
  * the send completed.
+ *
+ * Two handlers are exported from this file:
+ *  - onMessageSendHandler (repro-manifest.xml): classic ItemSend Events
+ *    extension point (FunctionExecution="synchronous"), modifies the body
+ *    directly via body.getAsync/setAsync or body.prependAsync.
+ *  - onMessageSendHandlerV2 (repro-manifest-v2.xml): mirrors the real
+ *    production v2 manifests (LaunchEvent extension point, OnMessageSend,
+ *    SendMode="SoftBlock", ExtendedPermissions/AppendOnSend, Mailbox 1.14) —
+ *    same attachment handling, but queues the banner via
+ *    body.prependOnSendAsync/body.appendOnSendAsync instead, so the compose
+ *    surface is never touched and the content only appears in the sent copy.
+ *    This is the proof-of-concept that appendOnSendAsync/prependOnSendAsync
+ *    avoid whatever corrupts inline attachments when the classic
+ *    getAsync+setAsync body round trip races the attachment upload.
  */
 
 Office.onReady(() => {
@@ -254,6 +268,53 @@ function setReproBannerPrepend(item) {
   });
 }
 
+// Queues content to be inserted at the beginning of the body, but only in
+// the sent copy — the compose surface itself is never touched. Requires
+// requirement set Mailbox 1.14.
+function prependOnSendBanner(item) {
+  return new Promise((resolve, reject) => {
+    const addedAt = new Date().toISOString();
+    const banner = `<div style="border:2px solid #2b6cd9;background:#e6f0ff;padding:8px 12px;margin-bottom:12px;font-family:sans-serif;">
+      <strong>Prepended via body.prependOnSendAsync at:</strong> ${addedAt}
+    </div>`;
+
+    console.log(`[repro] Calling body.prependOnSendAsync(Html), addedAt=${addedAt}, length=${banner.length}...`);
+
+    item.body.prependOnSendAsync(banner, { coercionType: Office.CoercionType.Html }, (res) => {
+      console.log('[repro] body.prependOnSendAsync returned.', { status: res.status, error: res.error });
+
+      if (res.status === Office.AsyncResultStatus.Failed) {
+        reject(res.error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+// Queues content to be inserted at the end of the body, but only in the
+// sent copy. Requires requirement set Mailbox 1.14.
+function appendOnSendBanner(item) {
+  return new Promise((resolve, reject) => {
+    const addedAt = new Date().toISOString();
+    const banner = `<div style="border:2px solid #2b9d5f;background:#e9fbf1;padding:8px 12px;margin-top:12px;font-family:sans-serif;">
+      <strong>Appended via body.appendOnSendAsync at:</strong> ${addedAt}
+    </div>`;
+
+    console.log(`[repro] Calling body.appendOnSendAsync(Html), addedAt=${addedAt}, length=${banner.length}...`);
+
+    item.body.appendOnSendAsync(banner, { coercionType: Office.CoercionType.Html }, (res) => {
+      console.log('[repro] body.appendOnSendAsync returned.', { status: res.status, error: res.error });
+
+      if (res.status === Office.AsyncResultStatus.Failed) {
+        reject(res.error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 // Mirrors OutlookDocument.setHeaders() — internetHeaders.setAsync() with a
 // plain header-name -> value map.
 function setReproHeader(item) {
@@ -323,3 +384,42 @@ async function onMessageSendHandler(event) {
 }
 
 Office.actions.associate('onMessageSendHandler', onMessageSendHandler);
+
+// V2 handler (see repro-manifest-v2.xml) — same attachment collection as
+// onMessageSendHandler, but writes the banner via
+// body.prependOnSendAsync/appendOnSendAsync instead of the getAsync+setAsync
+// round trip or plain prependAsync. No broken-inline-attachment detection:
+// the point of this handler is that prependOnSendAsync/appendOnSendAsync
+// never touch the existing body (inline attachments included), so there's
+// nothing to special-case.
+async function onMessageSendHandlerV2(event) {
+  console.log(`[repro] onMessageSendHandlerV2 started at ${new Date().toISOString()}`);
+
+  const item = Office.context.mailbox.item;
+
+  try {
+    const attachments = await getAttachments(item);
+    console.log('[repro] Collected attachments:', attachments);
+  } catch (error) {
+    console.error('[repro] Attachment collection failed/timed out — failing open.', error);
+  }
+
+  try {
+    await prependOnSendBanner(item);
+    await appendOnSendBanner(item);
+  } catch (error) {
+    console.error('[repro] Failed to queue onSend banner(s).', error);
+  }
+
+  try {
+    await setReproHeader(item);
+    console.log('[repro] Set X-GV-Repro internet header.');
+  } catch (error) {
+    console.error('[repro] Failed to set internet header.', error);
+  }
+
+  console.log('[repro] Completing event (v2), allowEvent=true.');
+  event.completed({ allowEvent: true });
+}
+
+Office.actions.associate('onMessageSendHandlerV2', onMessageSendHandlerV2);

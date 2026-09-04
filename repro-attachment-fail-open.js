@@ -365,7 +365,8 @@ async function onMessageSendHandler(event) {
   //   }
   // } else {
     try {
-      await setReproBanner(item);
+      // await setReproBanner(item);
+        await setReproBannerPrepend(item);
       console.log('[repro] Set banner into body.');
     } catch (error) {
       console.error('[repro] Failed to set banner.', error);

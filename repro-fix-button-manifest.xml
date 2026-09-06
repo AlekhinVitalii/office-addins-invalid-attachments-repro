@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  BUTTON-triggered fix variant, for accounts where event-based activation does
+  not fire (e.g. personal outlook.com). Adds a "Stamp classification" button to
+  the message compose ribbon that arms the same prependOnSendAsync +
+  appendOnSendAsync content as repro-fix.js - no body round-trip. Localhost URLs.
+  Requires Mailbox 1.13 and the AppendOnSend permission.
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xsi:type="MailApp">
+  <Id>aad9260b-a0e9-4b96-81f7-0e726a622d0d</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Repro</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Attachment fail-open repro (FIX: button)"/>
+  <Description DefaultValue="Button-triggered fix - arms classification header+footer via prepend/appendOnSend."/>
+  <IconUrl DefaultValue="https://localhost:3000/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/icon-64.png"/>
+  <SupportUrl DefaultValue="https://localhost:3000"/>
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://localhost:3000/repro-fix-button.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.13">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <DesktopFormFactor>
+            <FunctionFile resid="Commands.Url" />
+            <ExtensionPoint xsi:type="MessageComposeCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="fixBtnGroup">
+                  <Label resid="GroupLabel" />
+                  <Control xsi:type="Button" id="StampButton">
+                    <Label resid="StampButton.Label"/>
+                    <Supertip>
+                      <Title resid="StampButton.Label"/>
+                      <Description resid="StampButton.Tooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16x16"/>
+                      <bt:Image size="32" resid="Icon.32x32"/>
+                      <bt:Image size="80" resid="Icon.80x80"/>
+                    </Icon>
+                    <Action xsi:type="ExecuteFunction">
+                      <FunctionName>stampClassification</FunctionName>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Images>
+          <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/icon-16.png"/>
+          <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/icon-32.png"/>
+          <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/icon-80.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/repro-fix-button.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GroupLabel" DefaultValue="Repro Fix"/>
+          <bt:String id="StampButton.Label" DefaultValue="Stamp classification"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="StampButton.Tooltip" DefaultValue="Arm the classification header + footer to be stamped on send (prepend/appendOnSend)."/>
+        </bt:LongStrings>
+      </Resources>
+      <ExtendedPermissions>
+        <ExtendedPermission>AppendOnSend</ExtendedPermission>
+      </ExtendedPermissions>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>

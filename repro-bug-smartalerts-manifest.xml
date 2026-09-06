@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  BUG baseline, VALID modern activation.
+
+  Reproduces the send failure via a Smart Alerts OnMessageSend handler that does
+  the body.getAsync(Html) + body.setAsync(Html) round-trip, instead of the
+  legacy ItemSend event (which current manifest rules reject). Same activation
+  path as repro-fix-manifest.xml; the only difference is the handler does the
+  body round-trip rather than prepend/appendOnSend. Localhost URLs.
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xsi:type="MailApp">
+  <Id>8292fe64-581d-460a-ab0e-8f52c3582849</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Repro</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Attachment fail-open repro (BUG: Smart Alerts)"/>
+  <Description DefaultValue="Bug baseline via Smart Alerts OnMessageSend + body.setAsync round-trip."/>
+  <IconUrl DefaultValue="https://localhost:3000/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/icon-64.png"/>
+  <SupportUrl DefaultValue="https://localhost:3000"/>
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://localhost:3000/repro-bug-smartalerts.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.12">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <Runtimes>
+            <Runtime resid="WebViewRuntime.Url">
+              <Override type="javascript" resid="JSRuntime.Url"/>
+            </Runtime>
+          </Runtimes>
+          <DesktopFormFactor>
+            <FunctionFile resid="WebViewRuntime.Url" />
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendBugHandler" SendMode="SoftBlock" />
+              </LaunchEvents>
+              <SourceLocation resid="WebViewRuntime.Url"/>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Urls>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/repro-bug-smartalerts.html"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/repro-bug-smartalerts.js"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GetStarted.Title" DefaultValue="Attachment fail-open repro (BUG: Smart Alerts)"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="GetStarted.Description" DefaultValue="Bug baseline via Smart Alerts + body.setAsync round-trip."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>

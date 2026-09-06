@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  FIX VARIANT of repro-manifest.xml.
+
+  Difference from the original repro manifest:
+    * The original wires an ItemSend (legacy on-send) synchronous handler that
+      reads the body via body.getAsync(Html) and rewrites the WHOLE body via
+      body.setAsync(Html). That getAsync/setAsync round-trip is what makes
+      Outlook re-parse and re-upload the existing (broken) cid inline images on
+      send, producing "one or more attachments failed to upload".
+
+    * This variant does NO body round-trip. The visible classification header
+      (top) and footer (bottom) are queued at COMPOSE time via
+      prependOnSendAsync / appendOnSendAsync and stamped by Outlook itself at
+      send. The OnMessageSend (Smart Alerts) handler still does the attachment
+      scan and the X-GV internet header, but never touches the body.
+
+  Requires Mailbox 1.13 (prependOnSendAsync) and the AppendOnSend permission.
+  All URLs point at https://localhost:3000 for fully-local testing.
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xsi:type="MailApp">
+  <Id>2bc36419-c011-4403-9894-509117b2ae33</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Repro</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Attachment fail-open repro (FIX: on-send content)"/>
+  <Description DefaultValue="Fix variant — stamps classification header+footer via prepend/appendOnSend, no body round-trip."/>
+  <IconUrl DefaultValue="https://localhost:3000/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/icon-64.png"/>
+  <SupportUrl DefaultValue="https://localhost:3000"/>
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://localhost:3000/repro-fix.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.13">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <!-- JS-only runtime used for event-based activation (required on classic Outlook on Windows). -->
+          <Runtimes>
+            <Runtime resid="WebViewRuntime.Url">
+              <Override type="javascript" resid="JSRuntime.Url"/>
+            </Runtime>
+          </Runtimes>
+          <DesktopFormFactor>
+            <FunctionFile resid="WebViewRuntime.Url" />
+            <!-- Compose-time arming + send-time scan. Both are event-based (no button). -->
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <!-- Fires automatically on new/reply/reply-all/forward AND draft edit. -->
+                <LaunchEvent Type="OnMessageCompose" FunctionName="onMessageComposeHandler" />
+                <!-- Smart Alerts. SoftBlock is only the fallback if the handler never completes;
+                     the handler itself calls event.completed({ allowEvent: true }). -->
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock" />
+              </LaunchEvents>
+              <SourceLocation resid="WebViewRuntime.Url"/>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Urls>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/repro-fix.html"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/repro-fix.js"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GetStarted.Title" DefaultValue="Attachment fail-open repro (FIX)"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="GetStarted.Description" DefaultValue="Fix variant — on-send content stamping, no body round-trip."/>
+        </bt:LongStrings>
+      </Resources>
+      <!-- Required for prependOnSendAsync / appendOnSendAsync. -->
+      <ExtendedPermissions>
+        <ExtendedPermission>AppendOnSend</ExtendedPermission>
+      </ExtendedPermissions>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Repro FIX: prepend/append-on-send function file</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="./repro-fix.js"></script>
+</head>
+<body>
+  <!--
+    Invisible function file / event-based runtime page. Outlook loads it in the
+    background to run repro-fix.js, which associates the OnMessageCompose and
+    OnMessageSend handlers via Office.actions.associate(). Never shown to the user.
+  -->
+</body>
+</html>

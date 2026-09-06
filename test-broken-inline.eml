@@ -1,0 +1,37 @@
+From: Repro Sender <repro-sender@example.invalid>
+To: Repro Tester <repro-tester@example.invalid>
+Subject: [REPRO] Broken inline signature image
+Date: Mon, 01 Sep 2025 09:00:00 +0000
+Message-ID: <repro-broken-inline-0001@example.invalid>
+MIME-Version: 1.0
+Content-Type: multipart/related; type="text/html"; boundary="=_repro_boundary_1"
+
+--=_repro_boundary_1
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<html><body>
+<p>This is the message body above the signature. To reproduce, open this
+message and choose <b>Forward</b> (or Reply), add your own address, and send it
+with one of the repro add-ins enabled.</p>
+<p>--<br>
+Best regards,<br>
+<b>Repro Sender</b><br>
+<!-- Flavor 1: a present-but-CORRUPT inline part (truncated PNG). Renders as a
+     broken / whited-out image, like the corrupted signature images in #6780. -->
+<img src="cid:sig-logo-001" alt="company logo" width="180" height="48"><br>
+<!-- Flavor 2: a DANGLING cid reference with no matching MIME part at all -
+     the truest "broken link". -->
+<img src="cid:sig-icon-404" alt="missing icon" width="16" height="16"> &lt;-- dangling cid, no part exists
+</p>
+</body></html>
+
+--=_repro_boundary_1
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-ID: <sig-logo-001>
+Content-Disposition: inline; filename="logo.png"
+
+iVBORw0KGgoAAAANSUhEUgAAALQAAAAwCAYAAABxQvS3AAAAAXNSR0IArs4c6QAAAARnQU1BAACx
+jwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA5SURBVHhe7cEBDQAAAMKg909tDjegAAAAAAAA
+--=_repro_boundary_1--

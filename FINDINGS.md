@@ -81,6 +81,14 @@ deployment** the admin consents once and users get it silently (no per-user cons
 behavior; personal OWA won't trigger it. The bug-vs-fix A/B still needs classic Outlook +
 Exchange Online (Vitalii's env or an M365 dev tenant).
 
+**Rendering gotcha (not a bug):** when the fix is applied to a **forwarded** message,
+Outlook on the web's conversation/threaded view collapses the forwarded original as
+"message history" and shows the prepended header separately — it *looks* like the header
+was sent as a second mail. It isn't: Sent Items has a single message, and delivered to an
+external client (e.g. Gmail) it renders correctly as one message with header at top,
+forwarded content in the middle, and footer at the bottom. Turn off conversation view to
+see it as one message in OWA.
+
 ## Recommended next validation (Vitalii's env or an M365 dev tenant)
 
 1. Reproduce the failure with `repro-bug-smartalerts-manifest.xml` (Smart Alerts
